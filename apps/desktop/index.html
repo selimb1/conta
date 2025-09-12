@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conta — Desktop</title>
+  <style>
+    :root{
+      --bg:#0b1116; --panel:#0f1720; --muted:#9fb3c8; --text:#e6eef6;
+      --pri:#2fb67a; --pri-2:#1d8a5b; --warn:#f0b429; --err:#ff5d5d; --ok:#35d07f;
+      --line:#1b2a38;
+    }
+    [data-theme="light"]{
+      --bg:#f6fafc; --panel:#ffffff; --muted:#526477; --text:#0a0f14;
+      --pri:#2fb67a; --pri-2:#1d8a5b; --warn:#b17900; --err:#cc2e2e; --ok:#1f9a5c;
+      --line:#e1e8ef;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
+      background:linear-gradient(180deg, var(--bg), var(--bg) 40%, var(--bg));
+      color:var(--text);
+    }
+    .container{max-width:1200px;margin:0 auto;padding:20px;}
+    header{
+      position:sticky; top:0; backdrop-filter: blur(8px);
+      background:color-mix(in oklab, var(--bg) 86%, transparent); border-bottom:1px solid var(--line);
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700}
+    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--pri);box-shadow:0 0 10px #2fb67a80}
+    nav{display:flex;gap:10px;flex-wrap:wrap}
+    nav a{
+      color:var(--muted); text-decoration:none; padding:10px 14px; border:1px solid var(--line);
+      border-radius:12px; transition:.2s; display:inline-flex; gap:8px; align-items:center;
+    }
+    nav a.active, nav a:hover{ color:inherit; border-color:color-mix(in oklab, var(--line), var(--pri) 40%); background:color-mix(in oklab, var(--panel), var(--pri) 8%) }
+    .grid{display:grid; gap:16px}
+    .g-2{grid-template-columns: repeat(2, minmax(0, 1fr));}
+    .g-3{grid-template-columns: repeat(3, minmax(0, 1fr));}
+    .card{
+      background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px;
+      box-shadow: 0 10px 30px #00000014, inset 0 1px 0 #ffffff10;
+    }
+    .card h3{margin:.2rem 0 1rem 0; font-size:1.05rem}
+    .kpi{display:flex;flex-direction:column;gap:6px}
+    .kpi .val{font-size:1.6rem; font-weight:800}
+    .muted{color:var(--muted)}
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; border:1px solid var(--line);
+      background:color-mix(in oklab, var(--panel), #0a0 6%); color:inherit; cursor:pointer; transition:.2s; font-weight:600;
+    }
+    .btn:hover{background:color-mix(in oklab, var(--panel), var(--pri) 14%); border-color:color-mix(in oklab, var(--line), var(--pri) 50%)}
+    .btn.pri{background:linear-gradient(135deg, var(--pri), var(--pri-2)); color:white; border-color:#1b523a}
+    .btn.danger{background:#3a1a1a; border-color:#5b2a2a; color:#ffcccc}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    input[type=file], input[type=text], input[type=date], input[type=number], select, textarea{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:color-mix(in oklab, var(--panel), var(--bg) 30%); color:inherit;
+    }
+    label{display:block; font-size:.9rem; color:var(--muted); margin:.25rem 0 .4rem}
+    table{width:100%; border-collapse:collapse; font-size:.92rem}
+    th, td{border-bottom:1px solid var(--line); padding:10px; text-align:left}
+    th{color:var(--muted); background:color-mix(in oklab, var(--panel), var(--bg) 12%)}
+    pre{
+      background:color-mix(in oklab, var(--panel), var(--bg) 30%); border:1px solid var(--line); border-radius:12px; padding:12px; overflow:auto; max-height:380px
+    }
+    .split{display:grid; grid-template-columns: 1.2fr .8fr; gap:16px}
+    .thumb{width:100%; border-radius:12px; border:1px solid var(--line); background:color-mix(in oklab, var(--panel), var(--bg) 30%); display:grid; place-items:center; min-height:280px}
+    .pill{display:inline-flex; align-items:center; padding:6px 10px; gap:6px; border-radius:999px; border:1px solid var(--line); color:inherit; background:color-mix(in oklab, var(--panel), var(--pri) 10%)}
+    footer{opacity:.7; font-size:.85rem; padding:30px 0; text-align:center}
+    .hidden{display:none}
+
+    /* Command Palette */
+    .cmdk-overlay{
+      position:fixed; inset:0; background:#0009; display:none; align-items:flex-start; justify-content:center; padding-top:10vh; z-index:999;
+    }
+    .cmdk{ width:720px; background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow: 0 30px 80px #0008;}
+    .cmdk header{padding:10px; border-bottom:1px solid var(--line)}
+    .cmdk input{width:100%; border:none; outline:none; background:transparent; color:inherit; font-size:1.05rem}
+    .cmdk ul{list-style:none; margin:0; padding:0; max-height:360px; overflow:auto}
+    .cmdk li{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer; display:flex; justify-content:space-between}
+    .cmdk li:hover{background:color-mix(in oklab, var(--panel), var(--pri) 12%)}
+    .kbd{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border:1px solid var(--line); padding:2px 6px; border-radius:6px; color:var(--muted)}
+    .theme-toggle{margin-left:10px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container row" style="justify-content:space-between; align-items:center">
+      <div class="brand"><div class="dot"></div> <div>CONTA</div> <span class="pill">AR</span></div>
+      <nav id="nav">
+        <a data-tab="dashboard" class="active">Dashboard</a>
+      <a data-tab="clientes">Clientes</a>
+        <a data-tab="ingesta">Ingesta</a>
+        <a data-tab="revision">Revisión OCR</a>
+        <a data-tab="asientos">Asientos</a>
+        <a data-tab="eecc">EECC</a>
+        <a data-tab="libros">Libros IVA</a>
+        <a data-tab="config">Configuración</a>
+        <button id="btnTheme" class="btn theme-toggle" title="Cambiar tema">Tema</button>
+        <span class="kbd">⌘K / Ctrl+K</span>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top:20px">
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="grid g-3">
+      <div class="card kpi"><div class="muted">Auto‑contabilizados</div><div class="val" id="kpi-autoc">0%</div><div class="muted">objetivo ≥ 70%</div></div>
+      <div class="card kpi"><div class="muted">Ciclo doc → asiento</div><div class="val" id="kpi-ciclo">—</div><div class="muted">promedio (mm:ss)</div></div>
+      <div class="card kpi"><div class="muted">Concordancia DDJJ</div><div class="val" id="kpi-ddjj">—</div><div class="muted">objetivo ≥ 99.5%</div></div>
+
+      <div class="card" style="grid-column:1 / -1">
+        <h3>Actividad reciente</h3>
+        <table id="tbl-actividad"><thead><tr><th>Fecha</th><th>Documento</th><th>Estado</th><th>Detalle</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <!-- INGESTA -->
+    <section id="tab-ingesta" class="hidden">
+      <div class="grid g-2">
+        <div class="card">
+          <h3>Subir comprobante</h3>
+          <label>Archivo</label>
+          <input type="file" id="fileInput" accept="image/*,application/pdf" />
+          <div class="row" style="margin-top:12px">
+            <button class="btn pri" id="btnProcesar">Procesar (OCR → IE)</button>
+            <span class="muted" id="procStatus"></span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Resultado (JSON estándar)</h3>
+          <pre id="jsonOut">—</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVISION -->
+    <section id="tab-revision" class="hidden">
+      <div class="split">
+        <div class="card">
+          <h3>Documento</h3>
+          <div class="thumb"><img id="imgPreview" style="max-width:100%;max-height:460px;display:none" /></div>
+        </div>
+        <div class="card">
+          <h3>Campos extraídos</h3>
+          <table id="tblCampos"><thead><tr><th>Campo</th><th>Valor</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASIENTOS -->
+    <section id="tab-asientos" class="hidden">
+      <div class="card">
+        <h3>Asiento propuesto</h3>
+        <table id="tblAsiento"><thead><tr><th>Cuenta</th><th>Descripción</th><th>Debe</th><th>Haber</th></tr></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+
+    <!-- CLIENTES -->
+    <section id="tab-clientes" class="hidden">
+      <div class="grid g-2">
+        <div class="card">
+          <h3>Agregar cliente</h3>
+          <div class="row">
+            <div style="flex:1"><label>Razón social</label><input id="cliRS" type="text" placeholder="ACME S.A." /></div>
+            <div style="flex:1"><label>CUIT</label><input id="cliCUIT" type="text" placeholder="30-12345678-9" /></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div style="flex:1"><label>Condición IVA</label>
+              <select id="cliIVA">
+                <option>RI</option><option>Monotributo</option><option>Exento</option>
+              </select>
+            </div>
+            <div style="align-self:flex-end">
+              <button class="btn pri" id="btnCliAdd">Guardar</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Clientes</h3>
+          <div class="row"><input id="cliSearch" type="text" placeholder="Buscar por nombre o CUIT" style="flex:1" />
+            <button class="btn" id="btnCliReload">Recargar</button>
+          </div>
+          <table id="cliTable"><thead><tr><th>Razón social</th><th>CUIT</th><th>IVA</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- EECC -->
+    <section id="tab-eecc" class="hidden">
+      <div class="grid g-2">
+        <div class="card">
+          <h3>Exportar EECC (ESP / EERR / EEPN)</h3>
+          <div class="row">
+            <div style="flex:1">
+              <label>Empresa</label>
+              <input id="eeffEmpresa" type="text" placeholder="DemoSA" />
+              <div class="muted">Actual: <span id="empresaActual">—</span></div>
+            </div>
+            <div style="flex:1">
+              <label>Fecha de corte</label>
+              <input id="eeffFecha" type="date" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn pri" id="btnEECC">Generar .xlsx</button>
+            <span class="muted" id="eeffStatus"></span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Archivo generado</h3>
+          <div id="eeffFile" class="muted">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIBROS IVA -->
+    <section id="tab-libros" class="hidden">
+      <div class="grid g-2">
+        <div class="card">
+          <h3>Exportar Libro IVA</h3>
+          <div class="row">
+            <div style="flex:1"><label>Empresa</label><input id="ivaEmp" type="text" placeholder="DemoSA" /></div>
+            <div style="flex:1"><label>Período</label><input id="ivaPer" type="text" placeholder="2025-08" /></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn pri" id="btnLibro">Generar .xlsx</button>
+            <span class="muted" id="libroStatus"></span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Archivo generado</h3>
+          <div id="libroFile" class="muted">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="tab-config" class="hidden">
+      <div class="card">
+        <h3>Configuración rápida</h3>
+        <p class="muted">Endpoints API (local por defecto). Modificá si usás servidor.</p>
+        <label>Base URL</label>
+        <input id="baseUrl" type="text" value="http://127.0.0.1:8000" />
+        <div class="row" style="margin-top:8px"><button class="btn" id="btnGuardarCfg">Guardar</button><span class="muted" id="cfgStatus"></span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container">
+    <div>Conta • Desktop UI — disciplina, claridad, trazabilidad.</div>
+  </footer>
+
+  <!-- Command Palette -->
+  <div class="cmdk-overlay" id="cmdkOverlay" role="dialog" aria-modal="true" aria-label="Comandos">
+    <div class="cmdk">
+      <header><input id="cmdkInput" placeholder="Ir a… (Dashboard, Ingesta, Revisión, Asientos, EECC, Libros, Config)" /></header>
+      <ul id="cmdkList"></ul>
+    </div>
+  </div>
+
+<script>
+  // ---------- Theme toggle ----------
+  const root = document.documentElement;
+  function setTheme(t){ root.setAttribute('data-theme', t); localStorage.setItem('conta_theme', t); }
+  function toggleTheme(){ setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
+  const savedTheme = localStorage.getItem('conta_theme') || 'dark'; setTheme(savedTheme);
+  document.getElementById('btnTheme').onclick = toggleTheme;
+
+  // ---------- Tabs ----------
+  const $ = sel => document.querySelector(sel);
+  const $all = sel => Array.from(document.querySelectorAll(sel));
+
+  function openTab(tab){
+    $all('nav a').forEach(x => x.classList.toggle('active', x.dataset.tab === tab));
+    $all('main > section').forEach(s => s.classList.add('hidden'));
+    const section = $('#tab-' + tab.toLowerCase());
+    if(section) section.classList.remove('hidden');
+  }
+  $all('nav a').forEach(a => a.onclick = () => openTab(a.dataset.tab));
+
+  // ---------- Config ----------
+  function saveCfg(){
+    const val = $('#baseUrl').value.trim() || 'http://127.0.0.1:8000';
+    localStorage.setItem('conta_base_url', val);
+    $('#cfgStatus').textContent = 'Guardado';
+    setTimeout(()=> $('#cfgStatus').textContent = '', 1200);
+  }
+  $('#btnGuardarCfg').onclick = saveCfg;
+  const baseURL = () => localStorage.getItem('conta_base_url') || 'http://127.0.0.1:8000';
+
+  // ---------- Ingesta ----------
+  let lastJSON = null;
+  let lastImageURL = null;
+  $('#btnProcesar').onclick = async () => {
+    const f = $('#fileInput').files[0];
+    if(!f){ $('#procStatus').textContent = 'Elegí un archivo'; return; }
+    $('#procStatus').textContent = 'Procesando...';
+    const form = new FormData(); form.append('file', f);
+    try{
+      const r = await fetch(baseURL() + '/ingesta/procesar', {method:'POST', body: form});
+      const js = await r.json();
+      lastJSON = js;
+      $('#jsonOut').textContent = JSON.stringify(js, null, 2);
+      $('#procStatus').textContent = 'OK';
+
+      if(f.type.startsWith('image/')){
+        lastImageURL = URL.createObjectURL(f);
+        const img = $('#imgPreview');
+        img.src = lastImageURL; img.style.display = 'block';
+      }
+      const tb = $('#tblCampos tbody');
+      tb.innerHTML = '';
+      Object.entries(js.campos_extraidos || {}).forEach(([k,v]) => {
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td'); td1.textContent = k;
+        const td2 = document.createElement('td'); td2.textContent = typeof v === 'object' ? JSON.stringify(v) : (v ?? '—');
+        tr.appendChild(td1); tr.appendChild(td2); tb.appendChild(tr);
+      });
+      const ta = $('#tblAsiento tbody');
+      ta.innerHTML = '';
+      (js.asiento_propuesto?.lineas || []).forEach(l => {
+        const tr = document.createElement('tr');
+        ['cuenta','descripcion','debe','haber'].forEach(k => {
+          const td = document.createElement('td'); td.textContent = l[k]; tr.appendChild(td);
+        });
+        ta.appendChild(tr);
+      });
+      const tbAct = $('#tbl-actividad tbody');
+      const trA = document.createElement('tr');
+      trA.innerHTML = `<td>${new Date().toISOString().slice(0,16).replace('T',' ')}</td><td>${f.name}</td><td>Procesado</td><td>OCR/IE OK</td>`;
+      tbAct.prepend(trA);
+    }catch(e){
+      $('#procStatus').textContent = 'Error';
+      alert('Fallo procesar: ' + e);
+    }
+  };
+
+  // ---------- EECC export ----------
+  $('#btnEECC').onclick = async () => {
+    const empresa = $('#eeffEmpresa').value || 'DemoSA';
+    const fecha = $('#eeffFecha').value || new Date().toISOString().slice(0,10);
+    const payload = {
+      empresa, fecha_corte: fecha,
+      esp: {activo_corriente: 500000, activo_no_corriente: 300000, pasivo_corriente: 200000, pasivo_no_corriente: 150000, patrimonio_neto: 450000},
+      eerr: {ventas: 800000, costo_ventas: 500000, gastos_com: 60000, gastos_adm: 40000, res_fin: -10000, otros: 5000, imp_gan: 30000, resultado_neto: 165000},
+      eepn: {"Capital":300000,"Ajustes de Capital":20000,"Reserva Legal":15000,"Otras Reservas":5000,"Resultados Acumulados":-5000,"Resultado del Ejercicio":165000,"Total PN":495000}
+    };
+    $('#eeffStatus').textContent = 'Generando...';
+    try{
+      const r = await fetch(baseURL() + '/eeff/export', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+      const js = await r.json();
+      $('#eeffFile').innerHTML = `<a class="btn" href="${js.file}" target="_blank">Abrir ${js.file.split('/').pop()}</a>`;
+      $('#eeffStatus').textContent = 'OK';
+    }catch(e){
+      $('#eeffStatus').textContent = 'Error';
+      alert('No se pudo generar EECC: ' + e);
+    }
+  };
+
+  // ---------- Libro IVA export ----------
+  $('#btnLibro').onclick = async () => {
+    const empresa = $('#ivaEmp').value || 'DemoSA';
+    const periodo = $('#ivaPer').value || '2025-08';
+    const payload = { empresa, periodo, compras: [], ventas: [] };
+    $('#libroStatus').textContent = 'Generando...';
+    try{
+      const r = await fetch(baseURL() + '/eeff/libro-iva', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+      const js = await r.json();
+      $('#libroFile').innerHTML = `<a class="btn" href="${js.file}" target="_blank">Abrir ${js.file.split('/').pop()}</a>`;
+      $('#libroStatus').textContent = 'OK';
+    }catch(e){
+      $('#libroStatus').textContent = 'Error';
+      alert('No se pudo generar Libro IVA: ' + e);
+    }
+  };
+
+  // ---------- Command Palette (⌘K / Ctrl+K) ----------
+  const overlay = $('#cmdkOverlay');
+  const input = $('#cmdkInput');
+  const list = $('#cmdkList');
+  const commands = [
+    {label:'Ir a Dashboard', action:()=>openTab('dashboard')},
+    {label:'Ir a Ingesta', action:()=>openTab('ingesta')},
+    {label:'Ir a Revisión', action:()=>openTab('revision')},
+    {label:'Ir a Asientos', action:()=>openTab('asientos')},
+    {label:'Ir a EECC', action:()=>openTab('eecc')},
+    {label:'Ir a Libros', action:()=>openTab('libros')},
+    {label:'Ir a Config', action:()=>openTab('config')},
+    {label:'Cambiar tema', action:()=>toggleTheme()},
+  ];
+  function openPalette(){
+    overlay.style.display = 'flex';
+    input.value = '';
+    renderList(commands);
+    setTimeout(()=> input.focus(), 10);
+  }
+  function closePalette(){ overlay.style.display = 'none'; }
+  function renderList(items){
+    list.innerHTML = '';
+    items.forEach((it, i) => {
+      const li = document.createElement('li');
+      li.textContent = it.label;
+      const k = document.createElement('span'); k.className='kbd'; k.textContent = i<9 ? 'Enter' : '';
+      li.appendChild(k);
+      li.onclick = () => { it.action(); closePalette(); };
+      list.appendChild(li);
+    });
+  }
+  input.oninput = () => {
+    const q = input.value.toLowerCase();
+    const filtered = commands.filter(c => c.label.toLowerCase().includes(q));
+    renderList(filtered);
+  };
+  window.addEventListener('keydown', (e) => {
+    const modK = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k';
+    if(modK){ e.preventDefault(); openPalette(); }
+    if(e.key === 'Escape'){ closePalette(); }
+  });
+  overlay.addEventListener('click', (e)=>{ if(e.target === overlay) closePalette(); });
+
+  
+  // ---------- Clientes (CRUD) ----------
+  function empresaSetActual(nombre){ localStorage.setItem('empresa_actual', nombre); $('#empresaActual').textContent = nombre; $('#eeffEmpresa').value = nombre; $('#ivaEmp').value = nombre; }
+  function empresaGetActual(){ return localStorage.getItem('empresa_actual') || ''; }
+  $('#empresaActual').textContent = empresaGetActual() || '—';
+  if(empresaGetActual()) { $('#eeffEmpresa').value = empresaGetActual(); $('#ivaEmp').value = empresaGetActual(); }
+
+  async function cargarClientes(){
+    const q = $('#cliSearch').value || '';
+    const r = await fetch(baseURL() + '/clientes' + (q ? ('?q=' + encodeURIComponent(q)) : ''));
+    const lst = await r.json();
+    const tbody = $('#cliTable tbody');
+    tbody.innerHTML = '';
+    lst.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${c.razon_social}</td><td>${c.cuit}</td><td>${c.condicion_iva}</td>
+        <td><button class="btn" data-rs="${c.razon_social}">Elegir</button></td>`;
+      tr.querySelector('button').onclick = ()=> empresaSetActual(c.razon_social);
+      tbody.appendChild(tr);
+    });
+  }
+  $('#btnCliReload').onclick = cargarClientes;
+  $('#btnCliAdd').onclick = async () => {
+    const payload = { razon_social: $('#cliRS').value, cuit: $('#cliCUIT').value, condicion_iva: $('#cliIVA').value };
+    const r = await fetch(baseURL() + '/clientes', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+    if(!r.ok){ alert('Error al guardar'); return; }
+    await cargarClientes(); empresaSetActual(payload.razon_social);
+    $('#cliRS').value=''; $('#cliCUIT').value='';
+  };
+  $('#cliSearch').addEventListener('input', () => { clearTimeout(window._cli_t); window._cli_t = setTimeout(cargarClientes, 300); });
+
+  // Default open dashboard
+  openTab('dashboard');
+</script>
+</body>
+</html>

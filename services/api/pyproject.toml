@@ -1,0 +1,18 @@
+[project]
+name = "conta-api"
+version = "0.2.0"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "sqlalchemy",
+  "psycopg[binary]",
+  "pydantic",
+  "alembic",
+  "python-multipart",
+  "opencv-python",
+  "pytesseract",
+  "Pillow",
+  "numpy",
+  "XlsxWriter",
+  "python-docx"
+]

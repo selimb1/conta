@@ -1,0 +1,32 @@
+[
+  {
+    "cuenta": "1.1.1.01",
+    "rubro": "Caja y Bancos",
+    "saldo_valuado": 180000.55
+  },
+  {
+    "cuenta": "1.1.3.01",
+    "rubro": "Cr\u00e9ditos",
+    "saldo_valuado": 210000.0
+  },
+  {
+    "cuenta": "1.1.5.01",
+    "rubro": "Bienes de cambio",
+    "saldo_valuado": 275000.0
+  },
+  {
+    "cuenta": "1.2.5.01",
+    "rubro": "Bienes de uso",
+    "saldo_valuado": 420000.0
+  },
+  {
+    "cuenta": "1.2.7.01",
+    "rubro": "Intangibles",
+    "saldo_valuado": 50000.0
+  },
+  {
+    "cuenta": "2.1.1.01",
+    "rubro": "Pasivos",
+    "saldo_valuado": -260000.0
+  }
+]
