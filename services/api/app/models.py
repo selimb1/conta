@@ -20,6 +20,6 @@ class Documento(Base):
     fecha_emision = Column(Date)
     moneda = Column(String, default="ARS")
     total = Column(Numeric(18,2))
-    meta = Column(JSONB, default={})  # netos, iva por alícuota, etc.
+    meta = Column(JSONB, default=dict)  # netos, iva por alícuota, etc.
     hash_archivo = Column(String, unique=True)
     ruta_archivo = Column(Text)
