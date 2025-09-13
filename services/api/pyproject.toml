@@ -16,3 +16,7 @@ dependencies = [
   "XlsxWriter",
   "python-docx"
 ]
+
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=7"]
+build-backend = "setuptools.build_meta"
