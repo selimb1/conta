@@ -24,6 +24,7 @@ class LibrosDDJJ(BaseModel):
     iibb: Dict[str, Any]
 
 class ProcesamientoOut(BaseModel):
+    documento_id: str
     validaciones: List[Validacion]
     campos_extraidos: Dict[str, Any]
     asiento_propuesto: AsientoPropuesto
