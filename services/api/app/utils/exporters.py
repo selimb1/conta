@@ -2,10 +2,15 @@ from __future__ import annotations
 from typing import Dict, List
 from pathlib import Path
 import datetime as dt
+import json
+import logging
+
 import xlsxwriter
 
 EXPORT_DIR = Path("./exports")
 EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+
+logger = logging.getLogger(__name__)
 
 def _wb(path: Path):
     return xlsxwriter.Workbook(str(path))
@@ -67,6 +72,57 @@ def export_eeff_xlsx(empresa: str, fecha_corte: str, esp: Dict, eerr: Dict, eepn
     wb.close()
     return str(path)
 
-def export_outputs(doc_id: str) -> Dict:
-    # Minimal placeholder keeps previous behavior
-    return {"files": ["eeff.xlsx", "libro_iva.xlsx"]}
+def export_outputs(doc_id: str) -> Dict[str, List[str]]:
+    """Generate exportable files for a given document.
+
+    The function expects data for each exporter to be stored inside
+    ``EXPORT_DIR / doc_id / data.json``.  Only the files that are
+    successfully created are returned.
+    """
+
+    created: List[str] = []
+    doc_dir = EXPORT_DIR / doc_id
+    data = {}
+
+    # Load data for the document if available
+    try:
+        with (doc_dir / "data.json").open("r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        logger.warning("No data found for document %s", doc_id)
+    except Exception as exc:  # pragma: no cover - unexpected failures
+        logger.error("Failed to load data for document %s: %s", doc_id, exc)
+        return {"files": []}
+
+    # Export financial statements
+    eeff = data.get("eeff")
+    if eeff:
+        try:
+            path = export_eeff_xlsx(
+                eeff.get("empresa", doc_id),
+                eeff.get("fecha_corte", dt.date.today().isoformat()),
+                eeff.get("esp", {}),
+                eeff.get("eerr", {}),
+                eeff.get("eepn", {}),
+            )
+            if Path(path).exists():
+                created.append(path)
+        except Exception as exc:  # pragma: no cover - exporter failure
+            logger.error("Failed to export EEFF for %s: %s", doc_id, exc)
+
+    # Export IVA book
+    iva = data.get("libro_iva")
+    if iva:
+        try:
+            path = export_libro_iva(
+                iva.get("empresa", doc_id),
+                iva.get("periodo", dt.date.today().strftime("%Y%m")),
+                iva.get("compras", []),
+                iva.get("ventas", []),
+            )
+            if Path(path).exists():
+                created.append(path)
+        except Exception as exc:  # pragma: no cover - exporter failure
+            logger.error("Failed to export Libro IVA for %s: %s", doc_id, exc)
+
+    return {"files": created}
