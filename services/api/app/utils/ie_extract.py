@@ -8,6 +8,10 @@ _re_cae  = re.compile(r"\bCAE[:\s-]*([0-9]{14})\b", re.IGNORECASE)
 _re_fecha = re.compile(r"\b(\d{2})[/-](\d{2})[/-](\d{4})\b")
 _re_total = re.compile(r"\bTOTAL(?:\s*FACTURA)?[:\s-]*\$?\s*([0-9\.,]+)\b", re.IGNORECASE)
 _re_pv_nro = re.compile(r"\bPunto\s*de\s*Venta[:\s-]*0*(\d+)\b.*?\bComp(?:robante)?[:\s-]*0*(\d+)\b", re.IGNORECASE)
+_re_tipo_afip = re.compile(
+    r"\b(?:FACTURA|NOTA\s+DE\s+(?:DEBITO|DÉBITO|CREDITO|CRÉDITO))\s+([ABCM])\b",
+    re.IGNORECASE,
+)
 
 def _norm_number(s: str) -> float | None:
     if not s: return None
@@ -42,6 +46,19 @@ def extract_fields(ocr_output: Dict[str, Any]) -> Dict[str, Any]:
         pv = int(m.group(1))
         numero = int(m.group(2))
 
+    tipo = None
+    m = _re_tipo_afip.search(full_text)
+    if m:
+        tipo = m.group(1).upper()
+    else:
+        for i, tok in enumerate(tokens):
+            up = tok.upper()
+            if up in {"A", "B", "C", "M"}:
+                context = " ".join(tokens[max(0, i - 2): i + 3]).upper()
+                if "FACTURA" in context or "NOTA" in context:
+                    tipo = up
+                    break
+
     # crude VAT detection per common rates
     netos_por_alicuota = {}
     iva = {}
@@ -55,7 +72,7 @@ def extract_fields(ocr_output: Dict[str, Any]) -> Dict[str, Any]:
 
     campos = {
         "cuit_emisor": cuit_emisor,
-        "tipo": None,  # Detectar A/B/C/M con heurística adicional (pendiente)
+        "tipo": tipo,
         "pv": pv,
         "numero": numero,
         "fecha": fecha,
